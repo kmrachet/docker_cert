@@ -1,29 +1,34 @@
 # ルート証明書入りDocekrイメージの作り方
+
 ## 手動でやる方法
 1. ルート証明書`XXXX.crt`をダウンロードする
+
 2. Docker Desktopを起動する<br>
 (Docker Engineを常駐させている場合は不要)
-3. コマンドプロンプトを起動し、ルート証明書があるフォルダに移動<br>
+
+3. コマンドプロンプトを起動し、ルート証明書があるフォルダに移動
 ```
 cd C:\Users\user1\Downloads
 ```
 `user1`にはログインしているアカウント名を入れる。ルート証明書の場所は任意で
-4. ルート証明書を入れたいDockerイメージからコンテナを立ち上げる<br>
+
+4. ルート証明書を入れたいDockerイメージからコンテナを立ち上げる
 ```
 docker container run -d -e PASSWORD=password -p 8787:8787 --rm --name certplus ykunisato/paper-r:latest
 ```
-    - `-d`：Dockerコンテナを起動するときにデタッチする
-    - `-e`：環境変数を`変数名=値`の書式で引数に指定する
-    - `-p`：`ローカルマシン側のポート番号:Dockerコンテナ側のポート番号`の書式でポート番号を引数に指定する
-    - `--rm`：Dockerコンテナが停止したとき自動で削除する
-    - `--name`：Dockerコンテナの名前を引数に指定する
-    - `ykunisato/paper-r:latest`：ルート証明書をインストールしたいDockerリポジトリやイメージ、タグを指定する
+- `-d`：Dockerコンテナを起動するときにデタッチする
+- `-e`：環境変数を`変数名=値`の書式で引数に指定する
+- `-p`：`ローカルマシン側のポート番号:Dockerコンテナ側のポート番号`の書式でポート番号を引数に指定する
+- `--rm`：Dockerコンテナが停止したとき自動で削除する
+- `--name`：Dockerコンテナの名前を引数に指定する
+- `ykunisato/paper-r:latest`：ルート証明書をインストールしたいDockerリポジトリやイメージ、タグを指定する
+
 5. ルート証明書をコンテナにコピーし設定を更新<br>
 以下の作業が必要
-    - Dockerコンテナ内にルート証明書`XXXX.crt`をコピーする
-    - ルート証明書を`/usr/share/ca-certificates`ディレクトリに作成した新規ディレクトリ`xxxx`内に配置する
-    - 証明書の設定ファイル`/etc/ca-certificates.conf`に証明書の場所情報(`/usr/share/ca-certificates`より下のルート証明書のパス)を追記
-    - 証明書の設定ファイルに基づいて設定を更新する
+    1. Dockerコンテナ内にルート証明書`XXXX.crt`をコピーする
+    2. `/usr/share/ca-certificates`ディレクトリに新規ディレクトリ`xxxx`を作成し、`xxxx`内にルート証明書`XXXX.crt`を配置する
+    3. 証明書の設定ファイル`/etc/ca-certificates.conf`に証明書の場所情報(`/usr/share/ca-certificates`より下のルート証明書のパス)を追記
+    4. 証明書の設定ファイルに従って設定を更新する
 
     上記をまとめたものが↓
 ```
@@ -33,11 +38,11 @@ docker container cp XXXX.crt certplus:/usr/share/ca-certificates/xxxx/. && \
 docker container exec -d certplus update-ca-certificates
 ```
 
-    - `docker container exec`：DockerコンテナにLinuxコマンドを実行させる。
-    - `mkdir`：ディレクトリを作成する。
-    - `echo hoge >> tmp.conf`：`hoge`を`tmp.conf`ファイルの末尾に追記する。
-    - `docker container cp`：ローカルマシンのファイルをコンテナ内にコピーする。
-    - `update-ca-certificates`：証明書情報を`/etc/ca-certificates.conf`に記載されたとおりに更新する。
+- `docker container exec`：DockerコンテナにLinuxコマンドを実行させる。
+- `mkdir`：ディレクトリを作成する。
+- `echo hoge >> tmp.conf`：`hoge`を`tmp.conf`ファイルの末尾に追記する。
+- `docker container cp`：ローカルマシンのファイルをコンテナ内にコピーする。
+- `update-ca-certificates`：証明書情報を`/etc/ca-certificates.conf`に記載されたとおりに更新する。
 6. Dockerコンテナからイメージを作成する<br>
 ```
 docker container commit certplus user1/paper-r:latest-cert
@@ -83,15 +88,15 @@ RUN echo "xxxx/XXXX.crt" >> /etc/ca-certificates.conf && update-ca-certificates
 ENV PASSWORD=password
 ```
 
-    - `FROM`：ベースとなるDockerリポジトリ/イメージとタグを指定する。
-    - `COPY`：Dockerfileと同じフォルダ内の指定したファイルをDockerコンテナ内にコピーする。
-    - `RUN`：Dockerコンテナの中でLinuxコマンドを実行する。
-    - `ENV`：環境変数を設定する。
+- `FROM`：ベースとなるDockerリポジトリ/イメージとタグを指定する。
+- `COPY`：Dockerfileと同じフォルダ内の指定したファイルをDockerコンテナ内にコピーする。
+- `RUN`：Dockerコンテナの中でLinuxコマンドを実行する。
+- `ENV`：環境変数を設定する。
 
 4. DockerfileからDockerイメージを構築する<br>
 ```
 docker image build -t user1/paper-r:latest-cert .
 ```
-    - `-t`：構築するDockerイメージ名、タグ名を引数に指定する。
+- `-t`：構築するDockerイメージ名、タグ名を引数に指定する。
 5. 構築したDockerイメージからコンテナを立ち上げる<br>
 「手動でやる方法」 8.に同じ。
