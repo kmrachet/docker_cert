@@ -43,19 +43,24 @@ docker container exec -d certplus update-ca-certificates
 - `echo hoge >> tmp.conf`：`hoge`を`tmp.conf`ファイルの末尾に追記する。
 - `docker container cp`：ローカルマシンのファイルをコンテナ内にコピーする。
 - `update-ca-certificates`：証明書情報を`/etc/ca-certificates.conf`に記載されたとおりに更新する。
-6. Dockerコンテナからイメージを作成する<br>
+
+6. Dockerコンテナからイメージを作成する
+
 ```
 docker container commit certplus user1/paper-r:latest-cert
 ```
-Dockerイメージは`作成したユーザ名/コンテナ名:タグ名`が通例
-7. Dockerイメージ作成用のコンテナを停止する<br>
+    Dockerイメージは`作成したユーザ名/コンテナ名:タグ名`が通例
+
+7. Dockerイメージ作成用のコンテナを停止する
+
 ```
 docker container stop certplus
 ```
-`certplus`コンテナを立ち上げるときに`--rm`オプションを指定しているため`stop`コマンドのみで削除される。`--rm`オプションを指定していないコンテナを削除する場合は`docker container rm コンテナ名`で。
+    `certplus`コンテナを立ち上げるときに`--rm`オプションを指定しているため`stop`コマンドのみで削除される。`--rm`オプションを指定していないコンテナを削除する場合は`docker container rm コンテナ名`で。
+
 8. 作成したDockerイメージからコンテナを立ち上げる<br>
 Docker DesktopでOK。`user1/paper-r:latest-cert`イメージをRUN→オプションでポート番号とマウント先のフォルダを指定する。`PASSWORD`環境変数は先に指定しているため不要。<br>
-コマンドプロンプトで実行する場合は以下<br>
+コマンドプロンプトで実行する場合は以下
 ```
 docker container run -d -p 8787:8787 -v "%cd%":/home/rstudio user1/paper-r:latest-cert
 ```
@@ -65,20 +70,9 @@ docker container run -d -p 8787:8787 -v "%cd%":/home/rstudio user1/paper-r:lates
 Dockerコンテナのデフォルトユーザが`root`じゃないとうまくいかない。デフォルトユーザの確認は「手動でやる方法」の1.～4.でDockerコンテナを起動→`docker exec -it コンテナ名 bash`でコンテナにアタッチしたあとターミナルで`whoami`コマンドを入力する。
 
 1. 「手動でやる方法」1.～2.を実行する
-2. ローカルマシンのフォルダ構成を以下のようにする
 
-    Dockerfileとルート証明書を同じフォルダに入れておく(以下例)。
-
-```
-Downloads
-└ certplus
-　 ├ Dockerfile
-　 └ XXXX.crt
-```
-
-3. Docekrfileを作成
-
-    テキストエディタ(メモ帳等)で以下をコピペしたDockerfileを作成する。Dockerfileには拡張子をつけない。
+2. Docekrfileを作成<br>
+テキストエディタ(メモ帳等)で以下をコピペしたDockerfileを作成する。Dockerfileには拡張子をつけない。
 
 ```
 FROM ykunisato/paper-r:latest
@@ -93,10 +87,21 @@ ENV PASSWORD=password
 - `RUN`：Dockerコンテナの中でLinuxコマンドを実行する。
 - `ENV`：環境変数を設定する。
 
-4. DockerfileからDockerイメージを構築する<br>
+2. ローカルマシンのフォルダ構成を以下のようにする<br>
+Dockerfileとルート証明書を同じフォルダに入れておく(以下例)。
+
+```
+Downloads
+└ certplus
+　 ├ Dockerfile
+　 └ XXXX.crt
+```
+
+4. DockerfileからDockerイメージを構築する
 ```
 docker image build -t user1/paper-r:latest-cert .
 ```
-- `-t`：構築するDockerイメージ名、タグ名を引数に指定する。
+- `-t`：Dockerイメージ名とタグ名を`ユーザ名/イメージ名:タグ名`の書式で引数に指定する。
+
 5. 構築したDockerイメージからコンテナを立ち上げる<br>
 「手動でやる方法」 8.に同じ。
